@@ -5,22 +5,15 @@
 //  Created by Артем Соловьев on 17.03.2021.
 //
 
-import UIKit
+import RealmSwift
 
-struct Note{
-    var name: String
-    var uiimage: UIImage?
-    var image: String?
+class Note: Object{
+    @objc dynamic var name = ""
+    @objc dynamic var imageData: Data?
     
-    static let names = ["1", "2","kk"]
-
-    static func getInf()  -> [Note]{
-        var notes = [Note]()
-        
-        for note in names{
-            notes.append(Note(name: note, image: note))
-        }
-        
-        return notes
+    convenience init(name: String, imageData: Data?){
+        self.init()
+        self.name = name
+        self.imageData = imageData
     }
 }

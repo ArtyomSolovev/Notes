@@ -6,18 +6,20 @@
 //
 
 import UIKit
-
+import RealmSwift
 class MainViewController: UITableViewController {
-    var notes = Note.getInf()
+    var notes: Results<Note>!
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+//        tableView.tableFooterView = UIView()
+        notes = realm.objects(Note.self)
     }
 
     // MARK: - Table view data source
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return notes.count
+        return notes.isEmpty ? 0 : notes.count
     }
 
     
@@ -26,7 +28,7 @@ class MainViewController: UITableViewController {
 
         let note = notes[indexPath.row]
         cell.textLabel?.text = note.name
-        //cell.imageView?.image = UIImage(named: note.image!)//вставляет картинку
+//        cell.imageView?.image = UIImage(data: note.imageData!)//вставляет картинку
         
         return cell
     }
@@ -34,18 +36,29 @@ class MainViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50//возвращает высоту строки
     }
-    // MARK: - Navigation
-/*
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        let note = notes[indexPath.row]
+        let deleteAction = UITableViewRowAction(style: .default, title: "Delete") { (_, _) in
+            StorageManager.deleteObject(note)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+        
+        return [deleteAction]
     }
-    */
+    // MARK: - Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showDetail"{
+            guard let indexPath = tableView.indexPathForSelectedRow else {return}
+            let note = notes[indexPath.row]
+            let newNoteVC = segue.destination as! EditorViewController
+            newNoteVC.currentNotes = note 
+        }
+    }
     @IBAction func  unwindSegue(_ segue: UIStoryboardSegue){
         guard let newNoteVC = segue.source as? EditorViewController else {return}
-        newNoteVC.saveNewNote()
-        notes.append(newNoteVC.newNote!)
+        newNoteVC.saveNote()
+    //    notes.append(newNoteVC.newNote!)
         tableView.reloadData()// обновление интерфейса
     }
 }
