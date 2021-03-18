@@ -7,7 +7,7 @@
 
 import UIKit
 
-class EditorViewController: UIViewController {
+class EditorViewController: UIViewController, UITextViewDelegate{
     //var newNote = Note()
     var  currentNotes: Note?
 
@@ -15,16 +15,46 @@ class EditorViewController: UIViewController {
     @IBOutlet var textEditor: UITextView!
     override func viewDidLoad() {
         super.viewDidLoad()
+        textEditor.delegate = self
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(updateTextView(notification:)),
+                                               name: UIApplication.keyboardWillChangeFrameNotification,
+                                               object: nil)
         
+        // Отслеживаем скрытие клавиатуры
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(updateTextView(notification:)),
+                                               name: UIApplication.keyboardWillHideNotification,
+                                               object: nil)
+
 //        DispatchQueue.main.async {//позволяет обращаться к БД, даже когда интерфейс обновляется
 //            self.newNote.saveInf()
 //        }
         //saveButton.isEnabled = false
         setupEditScreen()
     }
-//    func textFieldDidChangeSelection(_ textField: UITextField) {
-//        view.endEditing(true)
-//    }
+    @objc func updateTextView(notification: Notification) {
+        
+        guard let userInfo = notification.userInfo as? [String: AnyObject],
+              let keyboardFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
+            else { return }
+        
+        if notification.name == UIApplication.keyboardWillHideNotification {
+            textEditor.contentInset = UIEdgeInsets.zero
+        } else {
+            textEditor.contentInset = UIEdgeInsets(top: 0,
+                                                 left: 0,
+                                                 bottom: keyboardFrame.height + 10,
+                                                 right: 0)
+            
+            textEditor.scrollIndicatorInsets = textEditor.contentInset
+        }
+        
+        textEditor.scrollRangeToVisible(textEditor.selectedRange)
+    }
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        view.endEditing(true)
+    }
 
     func saveNote(){
         
@@ -58,8 +88,6 @@ class EditorViewController: UIViewController {
     private func setupEditScreen(){
         if currentNotes != nil{
             setupNavagationBar() 
-            //guard let data = currentNotes?.imageData, let image = UIImage(data: data) else{return}
-            //noteImage.image = image
             
             textEditor.text = currentNotes?.name
             
@@ -83,17 +111,12 @@ class EditorViewController: UIViewController {
 // MARK: Text field delegate
 
 extension EditorViewController: UITextFieldDelegate{
-    // скрывать клавиатуру
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
+   func textFieldChanged() {
+
+        if textEditor.text?.isEmpty == false {
+            saveButton.isEnabled = true
+        } else {
+            saveButton.isEnabled = false
+        }
     }
-//    @objc private func textFieldChanged() {
-//
-//        if textEditor.text?.isEmpty == false {
-//            saveButton.isEnabled = true
-//        } else {
-//            saveButton.isEnabled = false
-//        }
-//    }
 }

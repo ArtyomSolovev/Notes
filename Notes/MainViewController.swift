@@ -14,6 +14,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     private var filteredNotes: Results<Note>!
     private var notes: Results<Note>!
     private var ascendingSorting = true
+    
     private var searchBarIsEmpty: Bool {
         guard let text = searchController.searchBar.text else { return false }
         return text.isEmpty
@@ -26,7 +27,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //tableView.tableFooterView = UIView()
         notes = realm.objects(Note.self)
         
         //Setup the search controller
@@ -35,6 +35,8 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         searchController.searchBar.placeholder = "Search"
         navigationItem.searchController = searchController
         definesPresentationContext = true
+        
+        tableView.tableFooterView = UIView()
     }
 
     // MARK: - Table view data source
@@ -46,7 +48,6 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         return notes.isEmpty ? 0 : notes.count
     }
 
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
