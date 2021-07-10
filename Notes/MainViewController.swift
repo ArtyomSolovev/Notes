@@ -7,9 +7,10 @@
 
 import UIKit
 import RealmSwift
-//38
+
 class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
+    @IBOutlet var tableView: UITableView!
     private let searchController = UISearchController(searchResultsController: nil)
     private var filteredNotes: Results<Note>!
     private var notes: Results<Note>!
@@ -19,17 +20,16 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         guard let text = searchController.searchBar.text else { return false }
         return text.isEmpty
     }
+    
     private var isFiltering: Bool {
         return searchController.isActive && !searchBarIsEmpty
     }
-    @IBOutlet var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         notes = realm.objects(Note.self)
         
-        //Setup the search controller
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search"
@@ -59,14 +59,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             note = notes[indexPath.row]
         }
         cell.textLabel?.text = note.name
-//        cell.imageView?.image = UIImage(data: note.imageData!)//вставляет картинку
         
         return cell
     }
+    
     // MARK: - Table view delegate
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 50//возвращает высоту строки
-    }
+    
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
         let note = notes[indexPath.row]
@@ -78,6 +76,7 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         return [deleteAction]
     }
+    
     // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -93,12 +92,12 @@ class MainViewController: UIViewController, UITableViewDataSource, UITableViewDe
             newNoteVC.currentNotes = note 
         }
     }
+    
     @IBAction func  unwindSegue(_ segue: UIStoryboardSegue){
         
         guard let newNoteVC = segue.source as? EditorViewController else {return}
         
         newNoteVC.saveNote()
-    //    notes.append(newNoteVC.newNote!)
         tableView.reloadData()// обновление интерфейса
     }
 }
